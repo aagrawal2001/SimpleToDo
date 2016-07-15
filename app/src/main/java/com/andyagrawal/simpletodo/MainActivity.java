@@ -10,11 +10,11 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.apache.commons.io.FileUtils;
+import com.activeandroid.query.Delete;
+import com.activeandroid.query.Select;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     ArrayList<String> items;
@@ -26,7 +26,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         lvItems = (ListView) findViewById(R.id.lvItems);
-        items = new ArrayList<>();
         readItems();
         itemsAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, items);
@@ -82,30 +81,29 @@ public class MainActivity extends AppCompatActivity {
             // Extract name value from result extras
             String value = data.getExtras().getString("value");
             int pos = data.getExtras().getInt("pos", 0);
-            items.set(pos, value);
+            items.set(pos,value);
             itemsAdapter.notifyDataSetChanged();
             writeItems();
         }
     }
 
     private void readItems() {
-        File filesDir = getFilesDir();
-        File todoFile = new File(filesDir, "todo.txt");
-        try {
-            items = new ArrayList<String>(FileUtils.readLines(todoFile));
-        } catch (IOException e) {
-            items = new ArrayList<String>();
+        List<TodoItem> todoItems = new Select().from(TodoItem.class)
+                .orderBy("position ASC").limit(100).execute();
+        items = new ArrayList<>();
+        for (TodoItem todoItem: todoItems) {
+            items.add(todoItem.text);
         }
     }
 
     private void writeItems() {
-        File filesDir = getFilesDir();
-        File todoFile = new File(filesDir, "todo.txt");
-        try {
-            FileUtils.writeLines(todoFile, items);
-        } catch (IOException e) {
-            e.printStackTrace();
+        new Delete().from(TodoItem.class).execute();
+        int pos = 1;
+        for (String item: items) {
+            TodoItem todoItem = new TodoItem(item, pos);
+            todoItem.save();
+            pos++;
         }
-    }
+   }
 
 }
