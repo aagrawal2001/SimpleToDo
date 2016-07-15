@@ -19,10 +19,9 @@ public class TodoItem extends Model {
         super();
     }
 
-    public TodoItem(String text, int position) {
+    public TodoItem(String text) {
         super();
         this.text = text;
-        this.position = position;
     }
 
     public String toString() {
